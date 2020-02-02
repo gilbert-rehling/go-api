@@ -46,7 +46,7 @@ func init() {
         log.Panic("DB ping error: %s", err)
     }
 
-    http.findAllPets(db)
+    http.GetPets(db)
 
 }
 

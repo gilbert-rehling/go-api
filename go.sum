@@ -1,2 +1,6 @@
+github.com/gilbert-rehling/go-api/http v0.0.0-20200202125757-4822ababb326 h1:3BZr7QXBiihKkHu4QRe6t7XDAAvyQzj7+/W+camD7vc=
+github.com/gilbert-rehling/go-api/http v0.0.0-20200202125757-4822ababb326/go.mod h1:ITPjhGNN2wCqM+dlyzMhqC2h/+XMHRlIJMmM0OSbAcM=
+github.com/gilbert-rehling/go-api/models v0.0.0-20200202125757-4822ababb326 h1:Rv6eEqzORLlxFL8lUg5v2jdfN659HBtpSIzntigQLrs=
+github.com/gilbert-rehling/go-api/models v0.0.0-20200202125757-4822ababb326/go.mod h1:IasAakvpTfwkwwi7qTjg/jnDMvE1X7p/tWebTW3rk8E=
 github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
