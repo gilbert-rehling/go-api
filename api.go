@@ -9,7 +9,7 @@ import (
 func init() {
     var text string
 
-    text = http.GetPets(db)
+    text = http.GetPets()
 
     fmt.Println(text)
 

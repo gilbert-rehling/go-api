@@ -7,7 +7,7 @@ import (
 
 func GetPets() (string) {
 
-    pet, err := models.FindAllPets("cat")
+    pet := models.FindAllPets("cat")
 
     fmt.Println("http ended!")
 
