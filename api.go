@@ -9,49 +9,16 @@ import (
 	"log/syslog"
 	"os"
 	"fmt"
+	"github.com/gilbert-rehling/go-api/models"
+	"github.com/gilbert-rehling/go-api/http"
 )
 
-/*
- * Tag... - a very simple struct
- */
-type Tag struct {
-    Id   string `json:"id"`
-    Name string `json:"name"`
-    Status string `json:"status"`
-}
-
-var db *sql.DB
-
-const port = "3306"
-
-// params - db *sql.DB
-func getResults() {
-
-    var tag Tag
-
-    err := db.QueryRow("SELECT `id`, `name`, `status` FROM `pet` WHERE `id` = ?", 1).Scan(&tag.Id, &tag.Name, &tag.Status)
-    if err != nil {
-        panic(err.Error()) // proper error handling instead of panic in your app
-    }
-
-    fmt.Println("id value: " + tag.Id)
-
-    fmt.Println("name value: " + tag.Name)
-
-    fmt.Println("status value: " + tag.Status)
-
-}
-
-func main() {
-
-    // acknowledge the process has started
-    fmt.Println("start")
-
+func init() {
     // handle some local logging
     logwriter, err := syslog.New(syslog.LOG_WARNING, "go API running")
 
     if err == nil {
-    	log.SetOutput(logwriter)
+        log.SetOutput(logwriter)
     }
 
     var dir string
@@ -66,13 +33,11 @@ func main() {
     db, dbErr := sql.Open("mysql", "petapi:petapi2020@tcp(localhost:3306)/petapi")
 
     if dbErr != nil {
-    	log.Panic("DB connection error: %s", dbErr)
+        log.Panic("DB connection error: %s", dbErr)
     }
 
     // To avoid error due to connection being closed in the server
     db.SetConnMaxLifetime(14000 * time.Second)
-
-    // defer db.Close()
 
     err = db.Ping()
 
@@ -81,18 +46,12 @@ func main() {
         log.Panic("DB ping error: %s", err)
     }
 
-    //listener, err := net.Listen("tcp", ":"+port)
+    http.findAllPets(db)
 
-    //if err != nil {
-        //log.Panic("Cannot bind to port")
-    //}
+}
 
-    //conn, err := listener.Accept() // this blocks until connection or error
-
-    //if err != nil {
-        //log.Panic("Cannot accept connection")
-    //}
-
-    getResults()
+func main() {
+    // acknowledge the process has started
+    fmt.Println("start")
 
 }
