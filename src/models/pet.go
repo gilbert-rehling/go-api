@@ -2,6 +2,7 @@ package models
 
 import (
     "time"
+    "database/sql"
     "github.com/gilbert-rehling/go-api/db"
 )
 
