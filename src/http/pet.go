@@ -7,9 +7,7 @@ import (
 
 func GetPets() {
 
-    var pets string
-
-    pets = models.FindAllPets()
+    pets := models.FindAllPets()
 
     fmt.Println(pets)
 
