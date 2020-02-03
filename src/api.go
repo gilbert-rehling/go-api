@@ -4,6 +4,7 @@ import (
     "time"
 	"fmt"
 	"log"
+	"database/sql"
 	"github.com/gilbert-rehling/go-api/db"
     "github.com/gilbert-rehling/go-api/http"
 )
@@ -12,7 +13,7 @@ func init() {
 
     fmt.Println("init start")
 
-    var er error
+    var err error
 
     // create the DB link !! todo: using hard coded credentials for testing !!
     db.Conn, err = sql.Open("mysql", "petapi:petapi2020@tcp(localhost:3306)/petapi")
