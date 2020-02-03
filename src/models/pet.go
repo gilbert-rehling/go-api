@@ -1,6 +1,7 @@
 package models
 
 import (
+    "fmt"
     "time"
     "database/sql"
     "github.com/gilbert-rehling/go-api/db"
@@ -19,7 +20,7 @@ type Pet struct {
 }
 
 func FindAllPets() ([]Pet) {
-    var pets []Pet
+    //var pets []Pet
 
     // generate query
     var stmt = "SELECT * FROM `pet` ORDER BY `id` DESC"
@@ -27,7 +28,7 @@ func FindAllPets() ([]Pet) {
     // run the query
     rows, err := db.Conn.Query(stmt)
     if err != nil {
-        return pets
+        return ''
     }
 
     // Get column names
@@ -42,9 +43,35 @@ func FindAllPets() ([]Pet) {
     // rows.Scan wants '[]interface{}' as an argument, so we must copy the
     // references into such a slice
     // See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
-    scanArgs := make([]interface{}, len(values))
+    pets := make([]interface{}, len(values))
     for i := range values {
         scanArgs[i] = &values[i]
+    }
+
+    // Fetch rows
+    for rows.Next() {
+        // get RawBytes from data
+        err = rows.Scan(pets...)
+        if err != nil {
+            panic(err.Error()) // proper error handling instead of panic in your app
+        }
+
+        // Now do something with the data.
+        // Here we just print each column as a string.
+        var value string
+        for i, col := range values {
+            // Here we can check if the value is nil (NULL value)
+            if col == nil {
+                value = "NULL"
+            } else {
+                value = string(col)
+            }
+            fmt.Println(columns[i], ": ", value)
+        }
+        fmt.Println("-----------------------------------")
+    }
+    if err = rows.Err(); err != nil {
+        panic(err.Error()) // proper error handling instead of panic in your app
     }
 
     return pets
