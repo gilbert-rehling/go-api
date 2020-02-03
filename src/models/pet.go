@@ -24,7 +24,7 @@ func FindAllPets() ([]Pet) {
     var stmt = "SELECT * FROM `pet` ORDER BY `id` DESC"
 
     // run the query
-    rows, err := database.DBCon.Query(stmt)
+    rows, err := db.Conn.Query(stmt)
     if err != nil {
         return pets
     }
