@@ -45,7 +45,7 @@ func FindAllPets() ([]Pet) {
     // See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
     pets := make([]interface{}, len(values))
     for i := range values {
-        scanArgs[i] = &values[i]
+        pets[i] = &values[i]
     }
 
     // Fetch rows
