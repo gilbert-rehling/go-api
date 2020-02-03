@@ -9,15 +9,15 @@ import (
     "github.com/gilbert-rehling/go-api/http"
 )
 
+// initialises the application
 func init() {
-
+    // init started
     fmt.Println("init start")
 
     var err error
 
     // create the DB link !! todo: using hard coded credentials for testing !!
     db.Conn, err = sql.Open("mysql", "petapi:petapi2020@tcp(localhost:3306)/petapi")
-
     if err != nil {
         log.Panic("DB connection error: %s", err)
     }
@@ -27,20 +27,22 @@ func init() {
 
     // check that the db link works
     err = db.Conn.Ping()
-
     if err != nil {
         fmt.Println("ping error:", err)
         log.Panic("DB ping error: %s", err)
     }
 
-    // call the handler - pass the DB connection for injection
-    http.GetPets()
+    // All Pets - call the handler
+    //http.GetPets()
 
+    // Single Pet - call the handler
+    http.GetPet()
+
+    // init finished
     fmt.Println("init finished")
-
 }
 
 func main() {
-    // acknowledge the process has started
+    // acknowledge that main has been called
     fmt.Println("main triggered")
 }
