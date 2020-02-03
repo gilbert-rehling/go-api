@@ -1,7 +1,0 @@
-{
-  "Database": "petapi",
-  "Host": "localhost",
-  "Password": "petapi2020",
-  "Port": "3306",
-  "Username": "petapi"
-}
