@@ -2,7 +2,6 @@ package models
 
 // spare imports ->  "database/sql" "time"
 import (
-    "fmt"
     "github.com/gilbert-rehling/go-api/db"
 )
 
@@ -19,8 +18,13 @@ type Pet struct {
 	Created   string    `json:"created_at"`
 }
 
+type PetByStatus struct {
+    ID        int       `json:"id"`
+    Status    string    `json:"status"`
+}
+
 // FindPetById returns a single pet by id column
-func FindPetById( id int) (Pet) {
+func FindPetById( id string) (Pet) {
     // output container
     pet := Pet{}
 
@@ -30,16 +34,17 @@ func FindPetById( id int) (Pet) {
     // run the query
     err := db.Conn.QueryRow(stmt, id).Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.Tags, &pet.Status, &pet.Updated, &pet.Created)
     if err != nil {
-         fmt.Printf(err.Error()) // implement proper error handling instead of panic
+         panic(err.Error()) // implement proper error handling instead of panic
     }
 
+    // return to handler
     return pet
 }
 
 // FindPetsByStatus returns all pets matching the status parameter
-func FindPetsByStatus(status string) ([]Pet) {
+func FindPetsByStatus(status string) ([]PetByStatus) {
     // the output container
-    var pets []Pet
+    var pets []PetByStatus
 
     // generate query
     var stmt = "SELECT `id`, `status` FROM `pet` WHERE `status` = ? ORDER BY `status` ASC"
@@ -51,10 +56,10 @@ func FindPetsByStatus(status string) ([]Pet) {
     }
 
     // iterate the resulting rows
-    // ToDO: this was the simplest and shortest (least amount of code) method to fetch all the results into a structure
+    // ToDO: this was the simplest and shortest (least amount of code) method to iterate the result set for restructuring
     for rows.Next() {
 
-        pet := Pet{}
+        pet := PetByStatus{}
         // get RawBytes from data
         err = rows.Scan(&pet.ID, &pet.Status)
         if err != nil {
@@ -68,6 +73,7 @@ func FindPetsByStatus(status string) ([]Pet) {
         panic(err.Error()) // implement proper error handling instead of panic
     }
 
+    // return to handler
     return pets
 }
 
