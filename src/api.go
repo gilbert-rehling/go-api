@@ -4,8 +4,7 @@ import (
     "time"
 	"fmt"
 	"log"
-	"database/sql"
-    _ "github.com/go-sql-driver/mysql"
+	"github.com/gilbert-rehling/go-api/database"
     "github.com/gilbert-rehling/go-api/http"
 )
 

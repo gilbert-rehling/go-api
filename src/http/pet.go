@@ -8,9 +8,11 @@ import (
 
 func GetPets(db *sql.DB) {
 
-    pet := models.FindAllPets("cat")
+    var pets string
 
-    fmt.Println(pet)
+    pets = models.FindAllPets(db)
+
+    fmt.Println(pets)
 
     fmt.Println("http ended!")
 
