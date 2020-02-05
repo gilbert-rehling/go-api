@@ -7,18 +7,12 @@ import (
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"github.com/gilbert-rehling/go-api/models"
+	"github.com/gilbert-rehling/go-api/responder"
 )
 
 type Data struct {
     Error   bool    `json:"error"`
     Message string  `json:"message"`
-}
-
-type Error struct {
-    Code    int     `json:"code"`
-    Type    string  `json:"type"`
-    Message string  `json:"message:"`
-    Data    Data    `json:"data"`
 }
 
 // GetSegments determines our function and possible value segments from the URL
@@ -98,189 +92,148 @@ func PutSwitch(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 // GetPet call FindPetById
 func GetPet(w http.ResponseWriter, r *http.Request, id string) {
     // the id should be passed within the URI as a segment
-    result := models.FindPetById( id )
+    if (len(id) == 0) {
+        // send error response
+        var e responder.Error
+        e.Code = 200
+        e.Type = "Success"
+        e.Message = "Operation executed successfully"
+        e.Data.Error = true
+        e.Data.Message = "id missing"
+        responder.SendErrorResponse(w, r, e)
 
-    // Success response structure
-    // Different Data structure for responses
-    type Response struct {
-        Code    int     `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    models.Pet  `json:"data"`
+    } else {
+         // run query on model
+         result := models.FindPetById( id )
+
+         if (result.ID == 0) {
+            // empty result
+            var empty responder.Empty
+            empty.Code = 200
+            empty.Type = "Success"
+            empty.Message = "Operation executed successfully"
+            empty.Data.Status = false
+            empty.Data.Message = "GetPet: empty response for ID " + id
+
+            responder.SendEmptyResponse(w, r, empty)
+
+         } else {
+            var rtn responder.Response
+            rtn.Code = 200
+            rtn.Type = "Success"
+            rtn.Message = "Operation executed successfully"
+            rtn.Data = result
+
+            // response as JSON
+            response, err := json.Marshal(rtn)
+            if (err != nil) {
+                // send empty response
+                http.NotFound(w, r)
+            }
+
+            // set content type to return JSON
+            w.Header().Set("Content-Type", "application/json")
+            w.Write(response)
+         }
     }
-
-    var rtn Response
-    rtn.Code = 200
-    rtn.Type = "Success"
-    rtn.Message = "Operation executed successfully"
-    rtn.Data = result
-
-    // response as JSON
-    response, err := json.Marshal(rtn)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
 }
 
 //  GetPetsByStatus calls FindPetsByStatus
 func GetPetsByStatus(w http.ResponseWriter, r *http.Request, status string) {
     // If the status is not present return an error
     // Later we will add a Response Package and handle all response there, including errors
-    if (status == "") {
+    if (len(status) <= 1) {
         // send error response
-        var d Data
-        d.Error = true
-        d.Message = "status missing"
+        var e responder.Error
+        e.Code = 200
+        e.Type = "Success"
+        e.Message = "Operation executed successfully"
+        e.Data.Error = true
+        e.Data.Message = "FindPetsByStatus: status missing"
 
-        var er Error
-        er.Code = 200
-        er.Type = "Success"
-        er.Message = "Operation executed successfully"
-        er.Data = d
+        responder.SendErrorResponse(w, r, e)
 
-        response, err := json.Marshal(er)
-        if (err != nil) {
-            // send error response
+    } else {
+        // run query on model
+        results := models.FindPetsByStatus(status)
+
+        if (len(results) == 0) {
+            // empty result
+            var empty responder.Empty
+            empty.Code = 200
+            empty.Type = "Success"
+            empty.Message = "Operation executed successfully"
+            empty.Data.Status = false
+            empty.Data.Message = "FindPetsByStatus: empty response for Status " + status
+
+            responder.SendEmptyResponse(w, r, empty)
+
+        } else {
+            // Success response structure
+            var rtn responder.Response
+            rtn.Code = 200
+            rtn.Type = "Success"
+            rtn.Message = "Operation executed successfully"
+            rtn.Data = results
+
+            // response as JSON
+            response, err := json.Marshal(rtn)
+            if (err != nil) {
+                // send empty response
+                http.NotFound(w, r)
+            }
+
+            // set content type to return JSON
             w.Header().Set("Content-Type", "application/json")
             w.Write(response)
         }
     }
-
-    // run query on model
-    results := models.FindPetsByStatus(status)
-
-    // Success response structure
-    // Different Data structure for responses
-    type Response struct {
-        Code    int     `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    []models.PetByStatus  `json:"data"`
-    }
-
-    var rtn Response
-    rtn.Code = 200
-    rtn.Type = "Success"
-    rtn.Message = "Operation executed successfully"
-    rtn.Data = results
-
-    // response as JSON
-    response, err := json.Marshal(rtn)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
 }
 
 func PostPet(w http.ResponseWriter, r *http.Request, value string) {
-    type EmptyResponse struct {
-         Code    int    `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    string  `json:"data"`
-    }
+    // empty response
+    var empty responder.Empty
+    empty.Code = 200
+    empty.Type = "Success"
+    empty.Message = "Operation executed successfully"
+    empty.Data.Status = false
+    empty.Data.Message = "PostPet: empty response"
 
-    var data EmptyResponse
-    data.Code = 200
-    data.Type = "Success"
-    data.Message = "Operation executed successfully"
-    data.Data = "PostPet empty response"
-
-    // response as JSON
-    response, err := json.Marshal(data)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
+    responder.SendEmptyResponse(w, r, empty)
 }
 
 func UpdatePet(w http.ResponseWriter, r *http.Request, ps httprouter.Params, value string) {
-    type EmptyResponse struct {
-         Code    int    `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    string  `json:"data"`
-    }
+    // empty response
+    var empty responder.Empty
+    empty.Code = 200
+    empty.Type = "Success"
+    empty.Message = "Operation executed successfully"
+    empty.Data.Status = false
+    empty.Data.Message = "UpdatePet: empty response"
 
-    var data EmptyResponse
-    data.Code = 200
-    data.Type = "Success"
-    data.Message = "Operation executed successfully"
-    data.Data = "UpdatePet empty response"
-
-    // response as JSON
-    response, err := json.Marshal(data)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
+    responder.SendEmptyResponse(w, r, empty)
 }
 
 func UploadImage(w http.ResponseWriter, r *http.Request, value string) {
-    type EmptyResponse struct {
-         Code    int    `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    string  `json:"data"`
-    }
+    // empty response
+    var empty responder.Empty
+    empty.Code = 200
+    empty.Type = "Success"
+    empty.Message = "Operation executed successfully"
+    empty.Data.Status = false
+    empty.Data.Message = "UploadImage: empty response"
 
-    var data EmptyResponse
-    data.Code = 200
-    data.Type = "Success"
-    data.Message = "Operation executed successfully"
-    data.Data = "UploadImage empty response"
-
-    // response as JSON
-    response, err := json.Marshal(data)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
+    responder.SendEmptyResponse(w, r, empty)
 }
 
 func DeletePet(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    type EmptyResponse struct {
-         Code    int    `json:"code"`
-        Type    string  `json:"type"`
-        Message string  `json:"message"`
-        Data    string  `json:"data"`
-    }
+    // empty response
+    var empty responder.Empty
+    empty.Code = 200
+    empty.Type = "Success"
+    empty.Message = "Operation executed successfully"
+    empty.Data.Status = false
+    empty.Data.Message = "DeletePet: empty response"
 
-    var data EmptyResponse
-    data.Code = 200
-    data.Type = "Success"
-    data.Message = "Operation executed successfully"
-    data.Data = "DeletePet empty response"
-
-    // response as JSON
-    response, err := json.Marshal(data)
-    if (err != nil) {
-        // send empty response
-        http.NotFound(w, r)
-    }
-
-    // set content type to return JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(response)
+    responder.SendEmptyResponse(w, r, empty)
 }

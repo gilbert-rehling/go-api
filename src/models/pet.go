@@ -1,12 +1,17 @@
 package models
 
+// In order to maintain best practice:
+// 1) I am minimising the imports to one local DB package
+// 2) We are always return the expected structure back to the handlers
+// !! These models are specific to the DB table and route specifications provided for the project scope !!
 // spare imports ->  "database/sql" "time"
 import (
     "github.com/gilbert-rehling/go-api/db"
 )
 
-// Pet defines the 'pet' properties structure
+// Define out structures to return to the handlers
 // For the time being I will use string for the dates instead of: time.Time
+// Pet defines the 'pet' properties structure
 type Pet struct {
 	ID        int       `json:"id"`
 	Category  int       `json:"category_id"`
@@ -18,10 +23,12 @@ type Pet struct {
 	Created   string    `json:"created_at"`
 }
 
+// PetByStatus defines the 'pet' properties structure
 type PetByStatus struct {
     ID        int       `json:"id"`
     Status    string    `json:"status"`
 }
+
 
 // FindPetById returns a single pet by id column
 func FindPetById( id string) (Pet) {
@@ -34,7 +41,9 @@ func FindPetById( id string) (Pet) {
     // run the query
     err := db.Conn.QueryRow(stmt, id).Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.Tags, &pet.Status, &pet.Updated, &pet.Created)
     if err != nil {
-         panic(err.Error()) // implement proper error handling instead of panic
+         // The error here would be 'no result' to run Scan with (sql.ErrNoRows)
+         // Just return the empty pet
+         return pet
     }
 
     // return to handler
@@ -52,7 +61,9 @@ func FindPetsByStatus(status string) ([]PetByStatus) {
     // run the query
     rows, err := db.Conn.Query(stmt, status)
     if err != nil {
-         panic(err.Error()) // implement proper error handling instead of panic
+        // just return the empty structure for now
+        // add some logging etc later
+        return pets
     }
 
     // iterate the resulting rows
@@ -63,14 +74,18 @@ func FindPetsByStatus(status string) ([]PetByStatus) {
         // get RawBytes from data
         err = rows.Scan(&pet.ID, &pet.Status)
         if err != nil {
-            panic(err.Error()) // implement proper error handling instead of panic
+            // just return the empty structure for now
+            // add some logging etc later
+            return pets
         }
         // build up the output container
         pets = append(pets, pet)
 
     }
     if err = rows.Err(); err != nil {
-        panic(err.Error()) // implement proper error handling instead of panic
+        // just return the empty structure for now
+        // add some logging etc later
+        return pets
     }
 
     // return to handler
@@ -88,7 +103,9 @@ func FindAllPets() ([]Pet) {
     // run the query
     rows, err := db.Conn.Query(stmt)
     if err != nil {
-         panic(err.Error()) // implement proper error handling instead of panic
+         // just return the empty structure for now
+         // add some logging etc later
+         return pets
     }
 
     // iterate the resulting rows
@@ -99,14 +116,18 @@ func FindAllPets() ([]Pet) {
         // get RawBytes from data
         err = rows.Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.Tags, &pet.Status, &pet.Updated, &pet.Created)
         if err != nil {
-            panic(err.Error()) // implement proper error handling instead of panic
+            // just return the empty structure for now
+            // add some logging etc later
+            return pets
         }
         // build up the output container
         pets = append(pets, pet)
 
     }
     if err = rows.Err(); err != nil {
-        panic(err.Error()) // implement proper error handling instead of panic
+        // just return the empty structure for now
+        // add some logging etc later
+        return pets
     }
 
     return pets
