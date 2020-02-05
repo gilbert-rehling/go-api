@@ -4,7 +4,6 @@ package handlers
 import (
     "strings"
 	"net/http"
-	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"github.com/gilbert-rehling/go-api/models"
 	"github.com/gilbert-rehling/go-api/responder"
@@ -99,14 +98,14 @@ func GetPet(w http.ResponseWriter, r *http.Request, id string) {
         e.Type = "Success"
         e.Message = "Operation executed successfully"
         e.Data.Error = true
-        e.Data.Message = "id missing"
+        e.Data.Message = "GetPet: id missing"
         responder.SendErrorResponse(w, r, e)
 
     } else {
          // run query on model
          result := models.FindPetById( id )
 
-         if (result.ID == 0) {
+         if (len(result) == 0) {
             // empty result
             var empty responder.Empty
             empty.Code = 200
@@ -118,22 +117,13 @@ func GetPet(w http.ResponseWriter, r *http.Request, id string) {
             responder.SendEmptyResponse(w, r, empty)
 
          } else {
-            var rtn responder.Response
+            var rtn responder.ResponseSingle
             rtn.Code = 200
             rtn.Type = "Success"
             rtn.Message = "Operation executed successfully"
             rtn.Data = result
 
-            // response as JSON
-            response, err := json.Marshal(rtn)
-            if (err != nil) {
-                // send empty response
-                http.NotFound(w, r)
-            }
-
-            // set content type to return JSON
-            w.Header().Set("Content-Type", "application/json")
-            w.Write(response)
+            responder.SendSingleResponse(w, r, rtn)
          }
     }
 }
@@ -170,22 +160,13 @@ func GetPetsByStatus(w http.ResponseWriter, r *http.Request, status string) {
 
         } else {
             // Success response structure
-            var rtn responder.Response
+            var rtn responder.ResponseMultiple
             rtn.Code = 200
             rtn.Type = "Success"
             rtn.Message = "Operation executed successfully"
             rtn.Data = results
 
-            // response as JSON
-            response, err := json.Marshal(rtn)
-            if (err != nil) {
-                // send empty response
-                http.NotFound(w, r)
-            }
-
-            // set content type to return JSON
-            w.Header().Set("Content-Type", "application/json")
-            w.Write(response)
+            responder.SendMultipleResponse(w, r, rtn)
         }
     }
 }

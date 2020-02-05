@@ -6,6 +6,7 @@ package models
 // !! These models are specific to the DB table and route specifications provided for the project scope !!
 // spare imports ->  "database/sql" "time"
 import (
+    "database/sql"
     "github.com/gilbert-rehling/go-api/db"
 )
 
@@ -29,21 +30,63 @@ type PetByStatus struct {
     Status    string    `json:"status"`
 }
 
-
 // FindPetById returns a single pet by id column
-func FindPetById( id string) (Pet) {
+func FindPetById( id string) map[string]interface{} {
     // output container
-    pet := Pet{}
+    var pet = make(map[string]interface{})
 
     // generate query
     var stmt = "SELECT * FROM `pet` WHERE `id` = ? ORDER BY `id` DESC"
 
     // run the query
-    err := db.Conn.QueryRow(stmt, id).Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.Tags, &pet.Status, &pet.Updated, &pet.Created)
+    // I have now changed this from QueryRow() to Query() so that I can use dynamic mapping
+    // Word on the street is that structures are faster -
+    // but it means I'd have to create structures for each different model response (Urghh!!)
+    rows, _ := db.Conn.Query(stmt, id)
+
+    // Get column names
+    columns, err := rows.Columns()
     if err != nil {
-         // The error here would be 'no result' to run Scan with (sql.ErrNoRows)
-         // Just return the empty pet
-         return pet
+        // just return the empty structure for now
+        // add some logging etc later
+        return pet
+    }
+
+    // Make a slice for the values
+    values := make([]sql.RawBytes, len(columns))
+
+    // rows.Scan wants '[]interface{}' as an argument,
+    // so we must copy the references into such a slice
+    // See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+    scanArgs := make([]interface{}, len(values))
+    for i := range values {
+        scanArgs[i] = &values[i]
+    }
+
+    // iterate the rows
+    for rows.Next() {
+        // get RawBytes from data
+        err = rows.Scan(scanArgs...)
+        if err != nil {
+            // just return the empty structure for now
+            // add some logging etc later
+            return pet
+        }
+        var value string
+        for i, col := range values {
+            // Here we can check if the value is nil (NULL value)
+            if col == nil {
+                value = "NULL"
+            } else {
+                value = string(col)
+            }
+            pet[columns[i]] = value
+        }
+    }
+    if err = rows.Err(); err != nil {
+        // just return the empty structure for now
+        // add some logging etc later
+        return pet
     }
 
     // return to handler
@@ -51,36 +94,57 @@ func FindPetById( id string) (Pet) {
 }
 
 // FindPetsByStatus returns all pets matching the status parameter
-func FindPetsByStatus(status string) ([]PetByStatus) {
+func FindPetsByStatus(status string) map[int]interface{} {
     // the output container
-    var pets []PetByStatus
+    var pets = make(map[int]interface{})
 
     // generate query
     var stmt = "SELECT `id`, `status` FROM `pet` WHERE `status` = ? ORDER BY `status` ASC"
 
     // run the query
     rows, err := db.Conn.Query(stmt, status)
+    // Get column names
+    columns, err := rows.Columns()
     if err != nil {
         // just return the empty structure for now
         // add some logging etc later
         return pets
     }
 
-    // iterate the resulting rows
-    // ToDO: this was the simplest and shortest (least amount of code) method to iterate the result set for restructuring
-    for rows.Next() {
+    // Make a slice for the values
+    values := make([]sql.RawBytes, len(columns))
 
-        pet := PetByStatus{}
+    // rows.Scan wants '[]interface{}' as an argument,
+    // so we must copy the references into such a slice
+    // See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+    scanArgs := make([]interface{}, len(values))
+    for i := range values {
+        scanArgs[i] = &values[i]
+    }
+
+    // iterate the rows
+    var x = 0;
+    for rows.Next() {
+        pet := make(map[string]interface{})
         // get RawBytes from data
-        err = rows.Scan(&pet.ID, &pet.Status)
+        err = rows.Scan(scanArgs...)
         if err != nil {
             // just return the empty structure for now
             // add some logging etc later
             return pets
         }
-        // build up the output container
-        pets = append(pets, pet)
-
+        var value string
+        for i, col := range values {
+            // Here we can check if the value is nil (NULL value)
+            if col == nil {
+                value = "NULL"
+            } else {
+                value = string(col)
+            }
+            pet[columns[i]] = value
+        }
+        pets[x] = pet
+        x++
     }
     if err = rows.Err(); err != nil {
         // just return the empty structure for now
