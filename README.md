@@ -1,7 +1,7 @@
 # Go-Api
 Go RESTful API with CRUD functionality
 
-###Notes: ###  
+### Notes: ###  
 - This Golang app is based on: (https://petstore.swagger.io/#/) 
 - Using basic MVC style 'layered' packaging.
 - Internal shared DB link package
